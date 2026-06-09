@@ -53,12 +53,35 @@ public class JobsController : ControllerBase
 
         var result = await _mediator.Send(command, ct);
 
-        var response = new CreateJobResponse(result.JobId);
+        var response = new CreateJobResponse(result.JobId, result.AlreadyExisted);
 
         if (result.AlreadyExisted)
             return Ok(response);
 
-        return Ok(response);
+        return CreatedAtAction(nameof(GetJob), new { id = result.JobId }, response);
+    }
+
+    /// <summary>Gets a job by ID.</summary>
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(JobDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetJob([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetJobQuery(id), ct);
+        return Ok(result);
+    }
+
+    /// <summary>Cancels a job that is Pending or Running.</summary>
+    [HttpPost("{id:guid}/cancel")]
+    [ProducesResponseType(typeof(CancelJobResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> CancelJob([FromRoute] Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new CancelJobCommand(id), ct);
+        return Ok(new CancelJobResponse(result.JobId));
     }
 }
 
@@ -68,4 +91,5 @@ public record CreateJobRequest(
     string Payload,
     DateTime? ScheduledAt = null);
 
-public record CreateJobResponse(Guid JobId);
+public record CreateJobResponse(Guid JobId, bool alreadyExisted = false);
+public record CancelJobResponse(Guid JobId);

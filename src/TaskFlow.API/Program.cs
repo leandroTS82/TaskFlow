@@ -1,5 +1,6 @@
 using Serilog;
 using TaskFlow.API.Extensions;
+using TaskFlow.API.Middleware;
 using TaskFlow.Application.Extensions;
 using TaskFlow.Infrastructure.Extensions;
 
@@ -29,6 +30,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -39,12 +42,22 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+app.UseSerilogRequestLogging(options =>
+{
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("TraceId", httpContext.TraceIdentifier);
+    };
+});
 
-app.UseAuthorization();
+app.UseMiddleware<ApiKeyMiddleware>();
 
 app.MapControllers();
 
+app.MapHealthChecks("/health");
+
 Log.Information("TaskFlow.API starting up");
 
-app.Run();
+await app.RunAsync();

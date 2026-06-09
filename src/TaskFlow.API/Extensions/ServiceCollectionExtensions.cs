@@ -1,4 +1,5 @@
 ﻿using Microsoft.OpenApi.Models;
+using TaskFlow.API.Settings;
 
 namespace TaskFlow.API.Extensions;
 
@@ -6,6 +7,8 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<ApiSettings>(configuration.GetSection(ApiSettings.SectionName));
+
         services.AddControllers();
         services.AddSwaggerDocumentation();
 
