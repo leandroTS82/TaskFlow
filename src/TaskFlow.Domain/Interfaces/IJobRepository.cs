@@ -1,5 +1,4 @@
 using TaskFlow.Domain.Entities;
-using TaskFlow.Domain.Enums;
 
 namespace TaskFlow.Domain.Interfaces;
 
@@ -10,5 +9,4 @@ public interface IJobRepository
     Task AddAsync(Job job, OutboxMessage outbox, CancellationToken ct);
     Task UpdateAsync(Job job, CancellationToken ct);
     Task<IEnumerable<Job>> GetAllAsync(CancellationToken ct);
-    Task<IEnumerable<Job>> GetByStatusAsync(JobStatus status, CancellationToken ct);
 }

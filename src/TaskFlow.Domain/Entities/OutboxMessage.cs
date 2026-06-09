@@ -24,4 +24,31 @@ public class OutboxMessage
     public DateTime CreatedAt { get; private set; }
     public bool Published { get; private set; }
     public DateTime? PublishedAt { get; private set; }
+
+    public void MarkAsPublished()
+    {
+        Published = true;
+        PublishedAt = DateTime.UtcNow;
+    }
+
+    public static OutboxMessage Restore(
+        Guid id,
+        Guid jobId,
+        string jobType,
+        string priority,
+        DateTime createdAt,
+        bool published,
+        DateTime? publishedAt)
+    {
+        return new OutboxMessage
+        {
+            Id = id,
+            JobId = jobId,
+            JobType = jobType,
+            Priority = priority,
+            CreatedAt = createdAt,
+            Published = published,
+            PublishedAt = publishedAt
+        };
+    }
 }
