@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="docker-compose.yml" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="../TaskFlow.Processor/TaskFlow.Processor.csproj" />
+    <Project Path="src/TaskFlow.API/TaskFlow.API.csproj" />
+    <Project Path="src/TaskFlow.Application/TaskFlow.Application.csproj" />
+    <Project Path="src/TaskFlow.Domain/TaskFlow.Domain.csproj" />
+    <Project Path="src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj" />
+    <Project Path="src/TaskFlow.Worker/TaskFlow.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TaskFlow.Tests/TaskFlow.Tests.csproj" />
+  </Folder>
+</Solution>
