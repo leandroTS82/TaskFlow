@@ -1,6 +1,7 @@
 using Serilog;
 using TaskFlow.API.Extensions;
 using TaskFlow.Application.Extensions;
+using TaskFlow.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, loggerConfiguration) =>
@@ -24,6 +25,7 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
 
 builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
