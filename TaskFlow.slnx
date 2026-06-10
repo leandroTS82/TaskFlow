@@ -4,7 +4,6 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="../TaskFlow.Processor/TaskFlow.Processor.csproj" />
     <Project Path="src/TaskFlow.API/TaskFlow.API.csproj" />
     <Project Path="src/TaskFlow.Application/TaskFlow.Application.csproj" />
     <Project Path="src/TaskFlow.Domain/TaskFlow.Domain.csproj" />
