@@ -8,6 +8,7 @@
     <Project Path="src/TaskFlow.Application/TaskFlow.Application.csproj" />
     <Project Path="src/TaskFlow.Domain/TaskFlow.Domain.csproj" />
     <Project Path="src/TaskFlow.Infrastructure/TaskFlow.Infrastructure.csproj" />
+    <Project Path="src/TaskFlow.Processor/TaskFlow.Processor.csproj" Id="1b2c6239-6c59-4182-ad91-ae7572fb2728" />
     <Project Path="src/TaskFlow.Worker/TaskFlow.Worker.csproj" />
   </Folder>
   <Folder Name="/tests/">
