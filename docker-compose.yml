@@ -79,6 +79,47 @@ services:
     networks:
       - taskflow-net
 
+  taskflow.processor:
+    build:
+      context: .
+      dockerfile: src/TaskFlow.Processor/Dockerfile
+    container_name: taskflow-processor
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://root:password@mongo:27017/?authSource=admin&replicaSet=rs0&directConnection=true
+      - MongoDB__DatabaseName=taskflow
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+      - Processor__IntervalSeconds=5
+    depends_on:
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - taskflow-net
+
+  taskflow.worker:
+    build:
+      context: .
+      dockerfile: src/TaskFlow.Worker/Dockerfile
+    container_name: taskflow-worker
+    environment:
+      - DOTNET_ENVIRONMENT=Development
+      - MongoDB__ConnectionString=mongodb://root:password@mongo:27017/?authSource=admin&replicaSet=rs0&directConnection=true
+      - MongoDB__DatabaseName=taskflow
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+    depends_on:
+      mongo:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - taskflow-net
+
 volumes:
   mongo_data:
   rabbitmq_data:
