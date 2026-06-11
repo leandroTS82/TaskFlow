@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using TaskFlow.Domain.Interfaces;
+using TaskFlow.Processor.Publishing;
 using TaskFlow.Processor.Settings;
 
 namespace TaskFlow.Processor.Services;
@@ -10,15 +8,18 @@ namespace TaskFlow.Processor.Services;
 public sealed class OutboxProcessorService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IMessagePublisher _publisher;
     private readonly ProcessorSettings _settings;
     private readonly ILogger<OutboxProcessorService> _logger;
 
     public OutboxProcessorService(
         IServiceScopeFactory scopeFactory,
+        IMessagePublisher publisher,
         IOptions<ProcessorSettings> settings,
         ILogger<OutboxProcessorService> logger)
     {
         _scopeFactory = scopeFactory;
+        _publisher = publisher;
         _settings = settings.Value;
         _logger = logger;
     }
@@ -50,7 +51,10 @@ public sealed class OutboxProcessorService : BackgroundService
                 .GetRequiredService<IOutboxRepository>();
 
             var messages = await outboxRepository.FindPendingAsync(ct);
-            var pending = messages.ToList();
+            var pending = messages
+                .OrderBy(m => m.Priority == "High" ? 0 : 1)
+                .ThenBy(m => m.CreatedAt)
+                .ToList();
 
             if (pending.Count == 0)
             {
@@ -59,16 +63,28 @@ public sealed class OutboxProcessorService : BackgroundService
             }
 
             _logger.LogInformation(
-                "Found {Count} pending outbox message(s).",
+                "Processing {Count} pending outbox message(s).",
                 pending.Count);
 
             foreach (var message in pending)
             {
-                _logger.LogInformation(
-                    "Pending: JobId={JobId} | Type={JobType} | Priority={Priority}",
-                    message.JobId,
-                    message.JobType,
-                    message.Priority);
+                if (ct.IsCancellationRequested) break;
+
+                try
+                {
+                    await _publisher.PublishAsync(message, ct);
+                    await outboxRepository.MarkAsPublishedAsync(message.Id, ct);
+
+                    _logger.LogInformation(
+                        "Published → JobId: {JobId} | Type: {JobType} | Priority: {Priority}",
+                        message.JobId, message.JobType, message.Priority);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex,
+                        "Failed to publish message for JobId: {JobId}. Will retry on next cycle.",
+                        message.JobId);
+                }
             }
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { }
