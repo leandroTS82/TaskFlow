@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using Polly;
 using TaskFlow.Domain.Interfaces;
 using TaskFlow.Processor.Publishing;
 using TaskFlow.Processor.Settings;
@@ -9,17 +10,20 @@ public sealed class OutboxProcessorService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMessagePublisher _publisher;
+    private readonly ResiliencePipeline _resiliencePipeline;
     private readonly ProcessorSettings _settings;
     private readonly ILogger<OutboxProcessorService> _logger;
 
     public OutboxProcessorService(
         IServiceScopeFactory scopeFactory,
         IMessagePublisher publisher,
+        ResiliencePipeline resiliencePipeline,
         IOptions<ProcessorSettings> settings,
         ILogger<OutboxProcessorService> logger)
     {
         _scopeFactory = scopeFactory;
         _publisher = publisher;
+        _resiliencePipeline = resiliencePipeline;
         _settings = settings.Value;
         _logger = logger;
     }
@@ -72,17 +76,24 @@ public sealed class OutboxProcessorService : BackgroundService
 
                 try
                 {
-                    await _publisher.PublishAsync(message, ct);
-                    await outboxRepository.MarkAsPublishedAsync(message.Id, ct);
+                    await _resiliencePipeline.ExecuteAsync(async token =>
+                    {
+                        await _publisher.PublishAsync(message, token);
+                        await outboxRepository.MarkAsPublishedAsync(message.Id, token);
 
-                    _logger.LogInformation(
-                        "Published → JobId: {JobId} | Type: {JobType} | Priority: {Priority}",
-                        message.JobId, message.JobType, message.Priority);
+                        _logger.LogInformation(
+                            "Published → JobId: {JobId} | Type: {JobType} | Priority: {Priority}",
+                            message.JobId, message.JobType, message.Priority);
+                    }, ct);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "Failed to publish message for JobId: {JobId}. Will retry on next cycle.",
+                        "Failed to publish message for JobId: {JobId} after all retries.",
                         message.JobId);
                 }
             }
