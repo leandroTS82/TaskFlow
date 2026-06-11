@@ -177,6 +177,13 @@ Testes unitários cobrem entidades do Domain e handlers da Application usando xU
 
 ## Planejamento Inicial
 Rascunho inicial — plano de ação e adaptação baseada em Kanban
+
+A exibição do quadro é um item importante para mostrar o planejamento e entendimento inicial que depois pode ser refinado.
+
+Exibe alem das escolhas, alguns trade-offs.
+
+Processo baseado no Kanban ajuda na organização e priorização, desde brain storms a simulação de tickets.
+
 | | |
 |---|---|
 | <img width="400" src="https://github.com/user-attachments/assets/6918c74c-29ea-4c5b-94d5-4f5e09c5b537" /> | <img width="400" src="https://github.com/user-attachments/assets/9c30bf90-d72f-4092-aca9-cf6f782be884" /> |
