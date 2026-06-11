@@ -46,7 +46,7 @@ public sealed class OutboxProcessorService : BackgroundService
         _logger.LogInformation("Outbox Processor stopped.");
     }
 
-    private async Task RunCycleAsync(CancellationToken ct)
+    internal async Task RunCycleAsync(CancellationToken ct)
     {
         try
         {
