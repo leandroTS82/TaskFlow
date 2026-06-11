@@ -19,7 +19,9 @@ public sealed class MassTransitMessagePublisher : IMessagePublisher
 
     public async Task PublishAsync(OutboxMessage message, CancellationToken ct)
     {
-        await _bus.Publish(
+        var endpoint = await _bus.GetSendEndpoint(new Uri("queue:taskflow-jobs"));
+
+        await endpoint.Send(
             new JobCreatedEvent(message.JobId, message.JobType, message.Priority),
             ct);
 
